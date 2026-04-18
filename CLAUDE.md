@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Running the Script
 
 ```bash
-uv run --with anthropic --with beautifulsoup4 python analyze.py
+uv run --with anthropic --with beautifulsoup4 --with python-dotenv python analyze.py
 ```
 
 Auto-loads `.env` from the project root — no need to export env vars manually.

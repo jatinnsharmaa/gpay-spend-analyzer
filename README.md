@@ -23,7 +23,7 @@ Turns your Google Pay transaction history into a visual spending dashboard — o
    ```
 3. Run:
    ```bash
-   uv run --with anthropic --with beautifulsoup4 python analyze.py
+   uv run --with anthropic --with beautifulsoup4 --with python-dotenv python analyze.py
    ```
 4. Open `output/report.html` in your browser
 
