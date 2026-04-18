@@ -1,5 +1,3 @@
-<img width="1470" height="956" alt="image" src="https://github.com/user-attachments/assets/99362f21-c861-4996-b665-e78857d4e3fe" /># GPay Spend Optimizer
-
 Turns your Google Pay transaction history into a visual spending dashboard — one script, no database, no server.
 
 ## What it does
