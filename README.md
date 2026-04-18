@@ -7,10 +7,11 @@ Turns your Google Pay transaction history into a visual spending dashboard — o
 - Outputs a clean `transactions.csv` and a self-contained `report.html` dashboard
 
 ## Dashboard includes
-<img width="1470" height="956" alt="Dashboard-GpaySpend" src="https://github.com/user-attachments/assets/f0a4e71b-943c-4f88-96d3-52e54367ec27" />
+
 - Monthly spend trend (last 24 months)
 - Spend by category — top 10, rest collapsed into Other
 - Top 10 merchants by total spend
+<img width="1470" height="956" alt="Dashboard-GpaySpend" src="https://github.com/user-attachments/assets/f0a4e71b-943c-4f88-96d3-52e54367ec27" />
 
 ## Setup
 
