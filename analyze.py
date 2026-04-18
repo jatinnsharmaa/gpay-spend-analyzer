@@ -16,6 +16,14 @@ from bs4 import BeautifulSoup
 TAKEOUT_DIR = Path(__file__).parent / "Takeout" / "Google Pay"
 OUTPUT_DIR = Path(__file__).parent / "output"
 
+# Set via PAYER_NAME env var to avoid embedding PII in source
+PAYER_NAME = os.environ.get("PAYER_NAME", "").lower()
+
+
+def safe_json(obj) -> str:
+    """JSON serializer safe for inline <script> blocks — escapes </ to prevent script injection."""
+    return json.dumps(obj, ensure_ascii=True).replace("</", "<\\/")
+
 CATEGORIES = [
     "Food & Dining", "Groceries", "Transport", "Subscriptions",
     "Investments", "Telecom", "Entertainment", "Health & Wellness",
@@ -168,7 +176,7 @@ def parse_group_expenses(json_path: Path) -> list[dict]:
         if group.get("state") not in ("COMPLETED", "CLOSED"):
             continue
         for item in group.get("items", []):
-            if item.get("payer", "").lower() not in ("jatin sharma", "jatin"):
+            if not PAYER_NAME or item.get("payer", "").lower() != PAYER_NAME:
                 continue
             if item.get("state") != "PAID_RECEIVED":
                 continue
@@ -326,24 +334,24 @@ def write_html(records: list[dict], output_path: Path):
     def fmt_month(ym: str) -> str:
         return datetime.strptime(ym, "%Y-%m").strftime("%b-%y")
 
-    monthly_labels = json.dumps([fmt_month(m) for m in sorted_months])
-    monthly_data = json.dumps([round(monthly_totals[m], 2) for m in sorted_months])
+    monthly_labels = safe_json([fmt_month(m) for m in sorted_months])
+    monthly_data = safe_json([round(monthly_totals[m], 2) for m in sorted_months])
 
     # Category totals
     cat_totals = defaultdict(float)
     for r in spend_records:
         cat_totals[r["category"]] += r["amount_inr"]
     cat_sorted = sorted(cat_totals.items(), key=lambda x: x[1], reverse=True)
-    cat_labels = json.dumps([c[0] for c in cat_sorted])
-    cat_data = json.dumps([round(c[1], 2) for c in cat_sorted])
+    cat_labels = safe_json([c[0] for c in cat_sorted])
+    cat_data = safe_json([round(c[1], 2) for c in cat_sorted])
 
     # Top 10 merchants
     merchant_totals = defaultdict(float)
     for r in spend_records:
         merchant_totals[r["merchant"]] += r["amount_inr"]
     top10 = sorted(merchant_totals.items(), key=lambda x: x[1], reverse=True)[:10]
-    merch_labels = json.dumps([m[0][:30] for m in top10])
-    merch_data = json.dumps([round(m[1], 2) for m in top10])
+    merch_labels = safe_json([m[0][:30] for m in top10])
+    merch_data = safe_json([round(m[1], 2) for m in top10])
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -463,12 +471,16 @@ def main():
 
 
 if __name__ == "__main__":
-    # Load .env if present
-    env_file = Path(__file__).parent / ".env"
-    if env_file.exists():
-        for line in env_file.read_text().splitlines():
-            if "=" in line and not line.startswith("#"):
-                k, v = line.split("=", 1)
-                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        # fallback if python-dotenv not installed
+        env_file = Path(__file__).parent / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
     main()

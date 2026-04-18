@@ -44,7 +44,14 @@ date, merchant, amount_inr, category, type, payment_method, raw_description
 ## Environment
 
 ```
-ANTHROPIC_API_KEY=...   # in .env at project root
+ANTHROPIC_API_KEY=...   # required
+PAYER_NAME=your name    # used to filter group expenses by payer; if unset, group expenses are skipped
 ```
 
-Model used: `claude-haiku-4-5-20251001` (merchant categorization only).
+Loaded via `python-dotenv` (`load_dotenv()`). Model used: `claude-haiku-4-5-20251001` (merchant categorization only).
+
+## Security Notes
+
+- `safe_json()` wraps all `json.dumps()` calls for chart data embedded in `<script>` blocks — escapes `</` → `<\/` to prevent script injection from malicious merchant names in Takeout data.
+- `PAYER_NAME` is read from env, not hardcoded, to avoid embedding PII in source.
+- `.gitignore` excludes `.env`, `Takeout/`, and `output/` — no secrets or personal data in the repo.
